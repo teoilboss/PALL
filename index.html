@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partite di Pallavolo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .result {
+            font-weight: bold;
+        }
+        button {
+            margin-right: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Gestione Partite Pallavolo</h1>
+
+    <!-- Tabella per Team Gumi -->
+    <table>
+        <caption><strong>Team Gumi (8 giocatori)</strong></caption>
+        <tr>
+            <th>Giocatore</th>
+        </tr>
+        <tr><td>GUMIERO</td></tr>
+        <tr><td>JABIR</td></tr>
+        <tr><td>RICALI</td></tr>
+        <tr><td>FONTANA</td></tr>
+        <tr><td>LOCATELLI</td></tr>
+        <tr><td>BODLLI</td></tr>
+        <tr><td>MASCHERONI</td></tr>
+        <tr><td>UMER</td></tr>
+    </table>
+
+    <!-- Tabella per Team Salvo -->
+    <table>
+        <caption><strong>Team Salvo (9 giocatori)</strong></caption>
+        <tr>
+            <th>Giocatore</th>
+        </tr>
+        <tr><td>SALVO</td></tr>
+        <tr><td>PALAZZO</td></tr>
+        <tr><td>BARINDELLI</td></tr>
+        <tr><td>NARCISO</td></tr>
+        <tr><td>GHISOLFI</td></tr>
+        <tr><td>TONET</td></tr>
+        <tr><td>BRAMANI</td></tr>
+        <tr><td>ZORZAN</td></tr>
+        <tr><td>YACHOU</td></tr>
+    </table>
+
+    <!-- Sezione per inserimento punteggi e giocatori assenti -->
+    <div class="match">
+        <h2>Nuova Partita</h2>
+        <div class="team">
+            <h3>Team Gumi</h3>
+            <label for="gumiScore">Inserisci punteggio del team Gumi:</label>
+            <input type="number" id="gumiScore" value="0" min="0">
+            <label for="gumiAbsent">Giocatori assenti nel team Gumi:</label>
+            <input type="number" id="gumiAbsent" value="0" min="0" max="8">
+        </div>
+
+        <div class="team">
+            <h3>Team Salvo</h3>
+            <label for="salvoScore">Inserisci punteggio del team Salvo:</label>
+            <input type="number" id="salvoScore" value="0" min="0">
+            <label for="salvoAbsent">Giocatori assenti nel team Salvo:</label>
+            <input type="number" id="salvoAbsent" value="0" min="0" max="9">
+        </div>
+
+        <button onclick="addMatch()">Aggiungi Partita</button>
+        <button onclick="resetScores()">Reset</button>
+    </div>
+
+    <!-- Tabella riassuntiva per il punteggio totale e le partite svolte -->
+    <table>
+        <caption><strong>Risultati Totali</strong></caption>
+        <tr>
+            <th>Numero di Partite</th>
+            <th>Punteggio Totale Team Gumi</th>
+            <th>Punteggio Totale Team Salvo</th>
+        </tr>
+        <tr>
+            <td id="totalMatches">0</td>
+            <td id="totalGumiScore">0</td>
+            <td id="totalSalvoScore">0</td>
+        </tr>
+    </table>
+
+    <!-- Tabella storico partite -->
+    <table id="historyTable">
+        <caption><strong>Storico Partite</strong></caption>
+        <tr>
+            <th>Partita</th>
+            <th>Punteggio Team Gumi</th>
+            <th>Punteggio Team Salvo</th>
+            <th>Modifica Punteggio</th>
+        </tr>
+    </table>
+
+    <script>
+        let totalGumiScore = 0;
+        let totalSalvoScore = 0;
+        let totalMatches = 0;
+        let matchHistory = [];
+
+        function addMatch() {
+            // Ottieni i valori inseriti
+            const gumiScore = parseInt(document.getElementById('gumiScore').value);
+            const gumiAbsent = parseInt(document.getElementById('gumiAbsent').value);
+            const salvoScore = parseInt(document.getElementById('salvoScore').value);
+            const salvoAbsent = parseInt(document.getElementById('salvoAbsent').value);
+
+            // Penalità per giocatori assenti (-7 punti per ogni assente)
+            const gumiFinalScore = gumiScore - (gumiAbsent * 7);
+            const salvoFinalScore = salvoScore - (salvoAbsent * 7);
+
+            // Aggiungi al totale
+            totalGumiScore += gumiFinalScore;
+            totalSalvoScore += salvoFinalScore;
+            totalMatches++;
+
+            // Aggiorna la tabella dei risultati totali
+            document.getElementById('totalMatches').textContent = totalMatches;
+            document.getElementById('totalGumiScore').textContent = totalGumiScore;
+            document.getElementById('totalSalvoScore').textContent = totalSalvoScore;
+
+            // Aggiungi la partita allo storico
+            const matchData = {
+                matchNumber: totalMatches,
+                gumiScore: gumiFinalScore,
+                salvoScore: salvoFinalScore
+            };
+            matchHistory.push(matchData);
+            updateHistoryTable();
+
+            // Resetta i valori per una nuova partita
+            document.getElementById('gumiScore').value = 0;
+            document.getElementById('gumiAbsent').value = 0;
+            document.getElementById('salvoScore').value = 0;
+            document.getElementById('salvoAbsent').value = 0;
+        }
+
+        function updateHistoryTable() {
+            const historyTable = document.getElementById('historyTable');
+            historyTable.innerHTML = `
+                <tr>
+                    <th>Partita</th>
+                    <th>Punteggio Team Gumi</th>
+                    <th>Punteggio Team Salvo</th>
+                    <th>Modifica Punteggio</th>
+                </tr>`;
+
+            matchHistory.forEach((match, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${match.matchNumber}</td>
+                    <td>${match.gumiScore}</td>
+                    <td>${match.salvoScore}</td>
+                    <td><button onclick="modifyMatch(${index})">Modifica</button></td>`;
+                historyTable.appendChild(row);
+            });
+        }
+
+        function resetScores() {
+            totalGumiScore = 0;
+            totalSalvoScore = 0;
+            totalMatches = 0;
+            matchHistory = [];
+
+            document.getElementById('totalMatches').textContent = 0;
+            document.getElementById('totalGumiScore').textContent = 0;
+            document.getElementById('totalSalvoScore').textContent = 0;
+
+            updateHistoryTable();
+        }
+
+        function modifyMatch(index) {
+            const newGumiScore = prompt("Inserisci il nuovo punteggio per Team Gumi:", matchHistory[index].gumiScore);
+            const newSalvoScore = prompt("Inserisci il nuovo punteggio per Team Salvo:", matchHistory[index].salvoScore);
+
+            if (newGumiScore !== null && newSalvoScore !== null) {
+                const oldGumiScore = matchHistory[index].gumiScore;
+                const oldSalvoScore = matchHistory[index].salvoScore;
+
+                matchHistory[index].gumiScore = parseInt(newGumiScore);
+                matchHistory[index].salvoScore = parseInt(newSalvoScore);
+
+                // Aggiorna i punteggi totali
+                totalGumiScore += parseInt(newGumiScore) - oldGumiScore;
+                totalSalvoScore += parseInt(newSalvoScore) - oldSalvoScore;
+
+                // Aggiorna la tabella dei risultati totali
+                document.getElementById('totalGumiScore').textContent = totalGumiScore;
+                document.getElementById('totalSalvoScore').textContent = totalSalvoScore;
+
+                // Aggiorna la tabella dello storico
+                updateHistoryTable();
+            }
+        }
+    </script>
+
+</body>
+</html>
