@@ -116,43 +116,73 @@
         </tr>
     </table>
 
+       
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partite di Pallavolo</title>
+    <style>
+        /* Tuoi stili CSS */
+    </style>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Contenuto del body, come le tabelle e i campi di input -->
+    
     <script>
+        // Codice JavaScript aggiornato per il salvataggio su LocalStorage
         let totalGumiScore = 0;
         let totalSalvoScore = 0;
         let totalMatches = 0;
         let matchHistory = [];
 
+        // Carica i dati da LocalStorage
+        window.onload = function() {
+            if (localStorage.getItem("matchHistory")) {
+                matchHistory = JSON.parse(localStorage.getItem("matchHistory"));
+                totalMatches = matchHistory.length;
+
+                matchHistory.forEach(match => {
+                    totalGumiScore += match.gumiScore;
+                    totalSalvoScore += match.salvoScore;
+                });
+
+                document.getElementById('totalMatches').textContent = totalMatches;
+                document.getElementById('totalGumiScore').textContent = totalGumiScore;
+                document.getElementById('totalSalvoScore').textContent = totalSalvoScore;
+
+                updateHistoryTable();
+            }
+        };
+
         function addMatch() {
-            // Ottieni i valori inseriti
             const gumiScore = parseInt(document.getElementById('gumiScore').value);
             const gumiAbsent = parseInt(document.getElementById('gumiAbsent').value);
             const salvoScore = parseInt(document.getElementById('salvoScore').value);
             const salvoAbsent = parseInt(document.getElementById('salvoAbsent').value);
 
-            // Penalità per giocatori assenti (-7 punti per ogni assente)
             const gumiFinalScore = gumiScore - (gumiAbsent * 7);
             const salvoFinalScore = salvoScore - (salvoAbsent * 7);
 
-            // Aggiungi al totale
             totalGumiScore += gumiFinalScore;
             totalSalvoScore += salvoFinalScore;
             totalMatches++;
 
-            // Aggiorna la tabella dei risultati totali
             document.getElementById('totalMatches').textContent = totalMatches;
             document.getElementById('totalGumiScore').textContent = totalGumiScore;
             document.getElementById('totalSalvoScore').textContent = totalSalvoScore;
 
-            // Aggiungi la partita allo storico
             const matchData = {
                 matchNumber: totalMatches,
                 gumiScore: gumiFinalScore,
                 salvoScore: salvoFinalScore
             };
             matchHistory.push(matchData);
+            localStorage.setItem("matchHistory", JSON.stringify(matchHistory));
+
             updateHistoryTable();
 
-            // Resetta i valori per una nuova partita
             document.getElementById('gumiScore').value = 0;
             document.getElementById('gumiAbsent').value = 0;
             document.getElementById('salvoScore').value = 0;
@@ -190,6 +220,7 @@
             document.getElementById('totalGumiScore').textContent = 0;
             document.getElementById('totalSalvoScore').textContent = 0;
 
+            localStorage.removeItem("matchHistory");
             updateHistoryTable();
         }
 
@@ -204,19 +235,16 @@
                 matchHistory[index].gumiScore = parseInt(newGumiScore);
                 matchHistory[index].salvoScore = parseInt(newSalvoScore);
 
-                // Aggiorna i punteggi totali
                 totalGumiScore += parseInt(newGumiScore) - oldGumiScore;
                 totalSalvoScore += parseInt(newSalvoScore) - oldSalvoScore;
 
-                // Aggiorna la tabella dei risultati totali
                 document.getElementById('totalGumiScore').textContent = totalGumiScore;
                 document.getElementById('totalSalvoScore').textContent = totalSalvoScore;
 
-                // Aggiorna la tabella dello storico
+                localStorage.setItem("matchHistory", JSON.stringify(matchHistory));
                 updateHistoryTable();
             }
         }
     </script>
-
 </body>
 </html>
