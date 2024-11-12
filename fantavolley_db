@@ -1,0 +1,8 @@
+CREATE TABLE matches (
+    match_id INT AUTO_INCREMENT PRIMARY KEY,
+    gumi_score INT NOT NULL,
+    salvo_score INT NOT NULL,
+    gumi_absent INT,
+    salvo_absent INT,
+    match_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

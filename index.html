@@ -40,32 +40,41 @@
         <tr>
             <th>Giocatore</th>
         </tr>
-        <tr><td>GUMIERO</td></tr>
-        <tr><td>JABIR</td></tr>
-        <tr><td>RICALI</td></tr>
-        <tr><td>FONTANA</td></tr>
-        <tr><td>LOCATELLI</td></tr>
-        <tr><td>BODLLI</td></tr>
-        <tr><td>MASCHERONI</td></tr>
-        <tr><td>UMER</td></tr>
+        <tr><td><button onclick="showPlayerDetails('Gumiero')">GUMIERO</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Jabir')">JABIR</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Ricali')">RICALI</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Fontana')">FONTANA</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Locatelli')">LOCATELLI</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Bodlli')">BODLLI</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Mascheroni')">MASCHERONI</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Umer')">UMER</button></td></tr>
     </table>
-
+    
     <!-- Tabella per Team Salvo -->
     <table>
         <caption><strong>Team Salvo (9 giocatori)</strong></caption>
         <tr>
             <th>Giocatore</th>
         </tr>
-        <tr><td>SALVO</td></tr>
-        <tr><td>PALAZZO</td></tr>
-        <tr><td>BARINDELLI</td></tr>
-        <tr><td>NARCISO</td></tr>
-        <tr><td>GHISOLFI</td></tr>
-        <tr><td>TONET</td></tr>
-        <tr><td>BRAMANI</td></tr>
-        <tr><td>ZORZAN</td></tr>
-        <tr><td>YACHOU</td></tr>
+        <tr><td><button onclick="showPlayerDetails('Salvo')">SALVO</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Palazzo')">PALAZZO</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Barindelli')">BARINDELLI</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Narciso')">NARCISO</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Ghisolfi')">GHISOLFI</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Tonet')">TONET</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Bramani')">BRAMANI</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Zorzan')">ZORZAN</button></td></tr>
+        <tr><td><button onclick="showPlayerDetails('Yachou')">YACHOU</button></td></tr>
     </table>
+    
+    <!-- Finestra Modale per Mostrare i Dettagli del Giocatore -->
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="playerName"></h2>
+            <p id="playerDetails"></p>
+        </div>
+    </div>
 
     <!-- Sezione per inserimento punteggi e giocatori assenti -->
     <div class="match">
@@ -243,8 +252,97 @@
 
                 localStorage.setItem("matchHistory", JSON.stringify(matchHistory));
                 updateHistoryTable();
+    // Il tuo codice esistente...
+
+    // Aggiungi questa funzione per salvare una nuova partita nel database
+    function saveMatchToDatabase(gumiScore, salvoScore, gumiAbsent, salvoAbsent) {
+        fetch('db_operations.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `gumi_score=${gumiScore}&salvo_score=${salvoScore}&gumi_absent=${gumiAbsent}&salvo_absent=${salvoAbsent}`
+        })
+        .then(response => response.text())
+        .then(data => console.log(data)) // Messaggio di successo o errore
+        .catch(error => console.error('Errore:', error));
+    }
+
+    // Aggiungi questa funzione per caricare le partite dal database e visualizzarle nella tabella
+    function loadMatchesFromDatabase() {
+        fetch('db_operations.php')
+        .then(response => response.json())
+        .then(matches => {
+            matches.forEach(match => {
+                addMatchToTable(match.match_id, match.gumi_score, match.salvo_score, match.match_date);
+            });
+        })
+        .catch(error => console.error('Errore:', error));
+    }
+
+    // Modifica la funzione addMatch per includere saveMatchToDatabase
+    function addMatch() {
+        const gumiScore = parseInt(document.getElementById('gumiScore').value);
+        const gumiAbsent = parseInt(document.getElementById('gumiAbsent').value);
+        const salvoScore = parseInt(document.getElementById('salvoScore').value);
+        const salvoAbsent = parseInt(document.getElementById('salvoAbsent').value);
+
+        const gumiFinalScore = gumiScore - (gumiAbsent * 7);
+        const salvoFinalScore = salvoScore - (salvoAbsent * 7);
+
+        totalGumiScore += gumiFinalScore;
+        totalSalvoScore += salvoFinalScore;
+        totalMatches++;
+
+        document.getElementById('totalMatches').textContent = totalMatches;
+        document.getElementById('totalGumiScore').textContent = totalGumiScore;
+        document.getElementById('totalSalvoScore').textContent = totalSalvoScore;
+
+        const matchData = {
+            matchNumber: totalMatches,
+            gumiScore: gumiFinalScore,
+            salvoScore: salvoFinalScore
+        };
+        matchHistory.push(matchData);
+        localStorage.setItem("matchHistory", JSON.stringify(matchHistory));
+
+        updateHistoryTable();
+
+        // Salva la partita nel database
+        saveMatchToDatabase(gumiFinalScore, salvoFinalScore, gumiAbsent, salvoAbsent);
+
+        // Resetta i campi input
+        document.getElementById('gumiScore').value = 0;
+        document.getElementById('gumiAbsent').value = 0;
+        document.getElementById('salvoScore').value = 0;
+        document.getElementById('salvoAbsent').value = 0;
+    }
+
+    // Chiama loadMatchesFromDatabase al caricamento della pagina per popolare la tabella
+    window.onload = function() {
+        // Carica dal localStorage
+        if (localStorage.getItem("matchHistory")) {
+            matchHistory = JSON.parse(localStorage.getItem("matchHistory"));
+            totalMatches = matchHistory.length;
+
+            matchHistory.forEach(match => {
+                totalGumiScore += match.gumiScore;
+                totalSalvoScore += match.salvoScore;
+            });
+
+            document.getElementById('totalMatches').textContent = totalMatches;
+            document.getElementById('totalGumiScore').textContent = totalGumiScore;
+            document.getElementById('totalSalvoScore').textContent = totalSalvoScore;
+
+            updateHistoryTable();
+        }
+
+        // Carica le partite dal database
+        loadMatchesFromDatabase();
+    };
             }
         }
     </script>
+    <script src="script.js"></script>
 </body>
 </html>
